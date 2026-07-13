@@ -23,9 +23,11 @@
     --mute:#5C6B66;
     --twig:#8B5E34;
     --twig-dark:#5E3D1F;
+    --coral:#E87D52;
+    --hi-dim:#B89A1F;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%}
+  html,body{height:100%;scroll-behavior:smooth}
   body{
     font-family:'Space Grotesk',system-ui,sans-serif;
     background:linear-gradient(180deg,var(--ink-teal),var(--teal-deep));
@@ -38,21 +40,31 @@
   .screen{display:none;flex-direction:column;flex:1}
   .screen.active{display:flex}
 
+  /* ---------- banners ---------- */
+  .banner{
+    background:rgba(255,210,63,.15);border:1px solid rgba(255,210,63,.35);
+    border-radius:12px;padding:12px 16px;font-size:13px;line-height:1.5;
+    color:#FFE8A1;margin-bottom:18px;display:none;
+  }
+  .banner.show{display:block}
+  .banner strong{color:var(--hi)}
+
   /* ---------- intro ---------- */
   .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--hi);font-weight:700;margin-bottom:14px}
-  h1{font-family:'Archivo Black',sans-serif;font-size:clamp(32px,8.5vw,42px);line-height:1.06;text-transform:uppercase}
+  h1{font-family:'Archivo Black',sans-serif;font-size:clamp(30px,8vw,38px);line-height:1.06;text-transform:uppercase}
   h1 .hl{background:var(--hi);color:var(--ink);padding:0 6px;display:inline-block;transform:rotate(-1deg)}
   .sub{margin-top:16px;font-size:16px;line-height:1.55;color:#CFE0DB;max-width:34ch}
   .nest-mark{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#7FA79F;margin-top:auto;padding-top:28px;line-height:1.6}
 
   /* ---------- shared ---------- */
   button.primary{
-    margin-top:28px;width:100%;padding:18px;border:none;border-radius:14px;
+    margin-top:24px;width:100%;padding:18px;border:none;border-radius:14px;
     background:var(--hi);color:var(--ink);font-family:'Space Grotesk';font-weight:700;
-    font-size:17px;cursor:pointer;transition:transform .12s ease;
+    font-size:17px;cursor:pointer;transition:transform .12s ease,opacity .15s ease;
   }
   button.primary:active{transform:scale(.98)}
-  button.primary:focus-visible,button.ghost:focus-visible,.tile:focus-within{outline:3px solid var(--hi);outline-offset:3px}
+  button.primary:disabled{opacity:.45;pointer-events:none}
+  button.primary:focus-visible,button.ghost:focus-visible,.tile:focus-within,.toggle-wrap:focus-within{outline:3px solid var(--hi);outline-offset:3px}
   button.ghost{
     margin-top:12px;width:100%;padding:14px;border:1px solid rgba(250,247,240,.35);border-radius:14px;
     background:transparent;color:var(--paper);font-family:'Space Grotesk';font-weight:500;font-size:15px;cursor:pointer;
@@ -61,8 +73,39 @@
   h2{font-family:'Archivo Black',sans-serif;font-size:26px;line-height:1.15;text-transform:uppercase;margin-bottom:6px}
   .hint{font-size:14px;color:#B9CFC9;margin-bottom:20px;line-height:1.45}
 
+  /* ---------- salary screen ---------- */
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:14px;font-weight:500;margin-bottom:8px;color:#DCEAE5}
+  .money-wrap{display:flex;align-items:center;background:rgba(250,247,240,.08);border:1px solid rgba(250,247,240,.2);border-radius:14px;padding:0 16px}
+  .money-wrap span{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--hi);font-size:18px}
+  .money-wrap input{
+    flex:1;background:transparent;border:none;color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;padding:16px 10px;width:100%;
+  }
+  .money-wrap input:focus{outline:none}
+  .money-wrap:focus-within{border-color:var(--hi)}
+  .inline-hint{font-size:12px;color:var(--coral);margin-top:6px;line-height:1.4;display:none}
+  .inline-hint.show{display:block}
+
+  /* ---------- car toggle ---------- */
+  .toggle-field{margin-bottom:22px}
+  .toggle-field .tf-label{font-size:14px;font-weight:500;color:#DCEAE5;margin-bottom:10px;display:block}
+  .toggle-row{display:flex;gap:10px}
+  .toggle-option{
+    flex:1;text-align:center;padding:14px 10px;border-radius:12px;
+    border:1px solid rgba(250,247,240,.2);background:rgba(250,247,240,.04);
+    cursor:pointer;transition:all .15s ease;user-select:none;
+    font-family:'Space Grotesk';font-weight:500;font-size:14px;color:#9FC2BA;
+  }
+  .toggle-option:active{transform:scale(.97)}
+  .toggle-option.on{
+    background:rgba(255,210,63,.12);border-color:var(--hi);color:var(--hi);
+  }
+  .toggle-option .to-label{display:block;font-size:15px;font-weight:700}
+  .toggle-option .to-sub{display:block;font-size:11px;margin-top:3px;opacity:.7}
+
   /* ---------- checklist ---------- */
-  .tiles{display:flex;flex-direction:column;gap:10px}
+  .tiles{display:flex;flex-direction:column;gap:10px;padding-bottom:80px}
   .tile{
     display:flex;align-items:center;gap:14px;background:rgba(250,247,240,.06);
     border:1px solid rgba(250,247,240,.14);border-radius:14px;padding:14px 16px;cursor:pointer;
@@ -85,24 +128,33 @@
   .tile .t-note{font-size:12px;color:#8FAAA3;line-height:1.35;margin-top:2px}
   .tile .t-val{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#9FC2BA;white-space:nowrap;padding-left:8px;align-self:flex-start;padding-top:2px}
 
-  /* ---------- salary ---------- */
-  .field{margin-bottom:18px}
-  .field label{display:block;font-size:14px;font-weight:500;margin-bottom:8px;color:#DCEAE5}
-  .money-wrap{display:flex;align-items:center;background:rgba(250,247,240,.08);border:1px solid rgba(250,247,240,.2);border-radius:14px;padding:0 16px}
-  .money-wrap span{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--hi);font-size:18px}
-  .money-wrap input{
-    flex:1;background:transparent;border:none;color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;padding:16px 10px;width:100%;
+  /* ---------- sticky live total ---------- */
+  .sticky-total{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:430px;background:linear-gradient(180deg,rgba(10,43,42,0),var(--teal-deep) 40%);
+    padding:30px 20px 20px;z-index:10;pointer-events:none;opacity:0;
+    transition:opacity .25s ease;
   }
-  .money-wrap input:focus{outline:none}
-  .money-wrap:focus-within{border-color:var(--hi)}
-  .optional{font-weight:400;color:#8FAAA3;font-size:12px}
+  .sticky-total.active{opacity:1}
+  .sticky-total .st-inner{
+    background:rgba(15,59,58,.95);border:1px solid var(--hi);border-radius:16px;
+    padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  }
+  .sticky-total .st-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#9FC2BA}
+  .sticky-total .st-amount{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--hi)}
+  .sticky-total .st-amount.zero{color:#5C6B66}
+  .sticky-total button{
+    pointer-events:auto;margin-top:12px;width:100%;padding:16px;border:none;border-radius:14px;
+    background:var(--hi);color:var(--ink);font-family:'Space Grotesk';font-weight:700;
+    font-size:16px;cursor:pointer;
+  }
 
-  /* ---------- payslip ---------- */
+  /* ---------- payslip result ---------- */
   #share-card{background:linear-gradient(180deg,var(--ink-teal),var(--teal-deep));padding:8px 4px 4px;border-radius:4px}
   .payslip{
     background:var(--paper);color:var(--ink);border-radius:4px;padding:26px 22px 30px;
-    font-family:'IBM Plex Mono',monospace;position:relative;margin-top:8px;
+    font-family:'IBM Plex Mono',monospace;position:relative;
     box-shadow:0 18px 40px rgba(0,0,0,.35);
   }
   .ps-head{text-align:center;border-bottom:2px dashed #B9B4A6;padding-bottom:14px;margin-bottom:14px}
@@ -112,8 +164,8 @@
   .ps-line .n{color:#3E4742}
   .ps-line .v{font-weight:600;white-space:nowrap}
   .ps-total{border-top:2px dashed #B9B4A6;margin-top:12px;padding-top:14px}
-  .ps-total .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute)}
-  .ps-total .amt{font-family:'Archivo Black',sans-serif;font-size:38px;margin-top:4px;line-height:1}
+  .ps-total .lbl{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute)}
+  .ps-total .amt{font-family:'Archivo Black',sans-serif;font-size:44px;margin-top:4px;line-height:1}
   .ps-total .per{font-size:12px;color:var(--mute);margin-top:6px}
   .stamp{
     position:absolute;top:16px;right:14px;transform:rotate(8deg);
@@ -121,17 +173,59 @@
     font-size:12px;padding:5px 9px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;
     opacity:.9;
   }
+
+  /* ---------- verdict & compare ---------- */
   .verdict{
-    margin-top:14px;background:rgba(250,247,240,.07);border:1px solid rgba(250,247,240,.16);
+    margin-top:8px;background:rgba(250,247,240,.07);border:1px solid rgba(250,247,240,.16);
     border-radius:14px;padding:18px;font-size:14px;line-height:1.55;color:#DCEAE5;
   }
   .verdict b{color:var(--hi)}
-  .compare{display:flex;gap:10px;margin-top:14px}
+  .compare{display:flex;gap:10px;margin-top:8px}
   .c-card{flex:1;background:rgba(250,247,240,.07);border:1px solid rgba(250,247,240,.16);border-radius:14px;padding:14px}
   .c-card .cl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#9FC2BA;line-height:1.4}
-  .c-card .cv{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-top:6px}
+  .c-card .cv{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;margin-top:6px}
   .c-card.hot{border-color:var(--hi)}
   .c-card.hot .cv{color:var(--hi)}
+
+  /* ---------- baseline breakdown ---------- */
+  .breakdown-toggle{
+    margin-top:14px;width:100%;padding:14px 16px;
+    background:rgba(250,247,240,.05);border:1px solid rgba(250,247,240,.2);
+    border-radius:14px;color:var(--paper);font-family:'Space Grotesk';font-weight:500;
+    font-size:14px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;
+    transition:background .15s ease;
+  }
+  .breakdown-toggle:hover,.breakdown-toggle:active{background:rgba(250,247,240,.1)}
+  .breakdown-toggle .chevron{display:inline-block;transition:transform .25s ease;font-size:12px}
+  .breakdown-toggle.open .chevron{transform:rotate(90deg)}
+  .breakdown-body{
+    display:none;background:rgba(250,247,240,.04);border:1px solid rgba(250,247,240,.12);
+    border-top:none;border-radius:0 0 14px 14px;padding:14px 16px;
+    font-size:13px;color:#B9CFC9;line-height:1.65;
+  }
+  .breakdown-body.open{display:block}
+  .breakdown-body .bd-line{display:flex;justify-content:space-between;padding:4px 0}
+  .breakdown-body .bd-line .bd-v{font-family:'IBM Plex Mono',monospace;color:#9FC2BA;font-size:12px}
+
+  /* ---------- affordability snapshot (car / house) ---------- */
+  .afford-proj{
+    margin-top:14px;background:rgba(255,210,63,.06);border:1px solid rgba(255,210,63,.25);
+    border-radius:14px;padding:18px;
+  }
+  .afford-tabs{display:flex;gap:8px;margin-bottom:14px}
+  .afford-tab{
+    flex:1;text-align:center;padding:10px;border-radius:10px;
+    border:1px solid rgba(255,210,63,.25);background:rgba(255,210,63,.04);
+    cursor:pointer;font-family:'Space Grotesk';font-weight:600;font-size:13px;color:#DCEAE5;
+    transition:all .15s ease;
+  }
+  .afford-tab.on{background:rgba(255,210,63,.15);border-color:var(--hi);color:var(--hi)}
+  .afford-tab:active{transform:scale(.97)}
+  .afford-proj .cp-head{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--hi);margin-bottom:12px;font-weight:700}
+  .afford-proj .cp-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#DCEAE5}
+  .afford-proj .cp-row .cp-v{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--hi)}
+  .afford-proj .cp-foot{font-size:12px;color:#7FA79F;margin-top:10px;line-height:1.5}
+
   .handle{
     margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px;
     font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--hi);
@@ -143,10 +237,6 @@
   .src{font-size:11px;color:#7FA79F;margin-top:18px;line-height:1.6}
   .src a{color:var(--hi)}
   .back-row{margin-top:auto;padding-top:10px}
-
-  @media (prefers-reduced-motion: reduce){
-    *{transition:none!important;animation:none!important}
-  }
 
   /* ---------- nest scene (pixel bird) ---------- */
   .nest-scene{position:relative;width:100%;height:132px;margin:20px 0 0;flex-shrink:0}
@@ -161,6 +251,10 @@
   .nest-rim,.nest-bowl{position:absolute;left:0;top:0;width:4px;height:4px}
   .nest-rim{color:var(--twig)}
   .nest-bowl{color:var(--twig-dark)}
+  .scene-label{
+    text-align:center;font-size:11px;color:#5C6B66;text-transform:uppercase;
+    letter-spacing:.14em;margin-top:6px;
+  }
   @keyframes birdJump{
     0%,100%{transform:translate(-50%,0)}
     8%{transform:translate(-50%,2px) scaleY(.85)}
@@ -176,16 +270,20 @@
     0%,49%{top:8px}
     50%,100%{top:16px}
   }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
 </style>
 </head>
 <body>
 <div class="app">
 
   <!-- SCREEN 1: INTRO -->
-  <section class="screen active" id="s-intro">
+  <section class="screen active" id="s-intro" aria-label="Introduction">
     <div class="eyebrow">Leaving the Nest Calculator</div>
     <h1>How much of your life is <span class="hl">quietly paid for?</span></h1>
-    <p class="sub">A quick exercise to see what's currently covered for you in your day-to-day, and how much you'd actually need to earn if you decided to live on your own in the Klang Valley.</p>
+    <p class="sub">A quick exercise to see what's currently covered for you, and how much you'd actually need to earn to live on your own in the Klang Valley.</p>
 
     <div class="nest-scene" aria-hidden="true">
       <div class="bird-wrap" id="bird-wrap">
@@ -199,47 +297,81 @@
         <div class="nest-bowl" id="nest-bowl"></div>
       </div>
     </div>
+    <div class="scene-label" aria-hidden="true">Pixel birb contemplating rent</div>
 
-    <button class="primary" onclick="startJourney()">Start the exercise</button>
+    <button class="primary" id="btn-start" onclick="startJourney()">Start the exercise</button>
     <div class="nest-mark">MY &middot; Klang Valley &middot; Belanjawanku 2024/25 + 2025/26 market data<br>by @thejoelwong</div>
   </section>
 
-  <!-- SCREEN 2: CHECKLIST -->
-  <section class="screen" id="s-check">
-    <div class="step-label">Step 1 / 2</div>
-    <div class="progress" aria-hidden="true"><span class="fill" style="width:50%"></span></div>
-    <h2>What's covered for you?</h2>
-    <p class="hint">Tick everything you don't currently pay for yourself. Be honest, nobody's watching.</p>
-    <div class="tiles" id="tiles"></div>
-    <button class="primary" onclick="go('s-salary')">Next</button>
+  <!-- SCREEN 2: YOUR NUMBERS -->
+  <section class="screen" id="s-salary" aria-label="Your numbers">
+    <div class="step-label">Step 1 / 3</div>
+    <div class="progress" aria-hidden="true"><span class="fill" id="prog1" style="width:33%"></span></div>
+    <h2>Your numbers</h2>
+    <p class="hint">So we can personalise your result. Salary unlocks the full verdict.</p>
+
+    <div class="field">
+      <label for="salary">Monthly take-home salary</label>
+      <div class="money-wrap"><span>RM</span><input id="salary" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="2,800"></div>
+      <div class="inline-hint" id="salary-hint">Add your salary for a personalised verdict</div>
+    </div>
+
+    <div class="toggle-field">
+      <span class="tf-label">Do you use a car?</span>
+      <div class="toggle-row" id="car-toggle">
+        <div class="toggle-option on" data-car="yes" role="button" tabindex="0" aria-pressed="true">
+          <span class="to-label">Yes, I drive</span>
+          <span class="to-sub">Includes car-related costs</span>
+        </div>
+        <div class="toggle-option" data-car="no" role="button" tabindex="0" aria-pressed="false">
+          <span class="to-label">Public transport</span>
+          <span class="to-sub">LRT / MRT / bus life</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="spend">What you spend per month now</label>
+      <div class="money-wrap"><span>RM</span><input id="spend" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="900"></div>
+      <div class="inline-hint" id="spend-hint">Leave blank and we'll estimate from market data</div>
+    </div>
+
+    <div class="field">
+      <label for="save">How much do you want to save each month</label>
+      <div class="money-wrap"><span>RM</span><input id="save" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="400"></div>
+      <div class="inline-hint" id="save-hint">Optional — adds to the target income shown in your verdict</div>
+    </div>
+
+    <button class="primary" onclick="go('s-check')">Next</button>
     <div class="back-row"><button class="ghost" onclick="go('s-intro')">Back</button></div>
   </section>
 
-  <!-- SCREEN 3: SALARY -->
-  <section class="screen" id="s-salary">
-    <div class="step-label">Step 2 / 2</div>
-    <div class="progress" aria-hidden="true"><span class="fill" style="width:100%"></span></div>
-    <h2>Your numbers</h2>
-    <p class="hint">So we can tell you if the jump is survivable.</p>
-    <div class="field">
-      <label for="salary">Monthly take-home salary <span class="optional">(optional)</span></label>
-      <div class="money-wrap"><span>RM</span><input id="salary" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="2,800"></div>
+  <!-- SCREEN 3: CHECKLIST -->
+  <section class="screen" id="s-check" aria-label="What's covered for you">
+    <div class="step-label">Step 2 / 3</div>
+    <div class="progress" aria-hidden="true"><span class="fill" id="prog2" style="width:66%"></span></div>
+    <h2>What's covered for you?</h2>
+    <p class="hint">Tick everything you don't currently pay for yourself. Be honest, nobody's watching.</p>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="sticky-total" id="sticky-total">
+      <div class="st-inner">
+        <div>
+          <div class="st-label">Nest subsidy so far</div>
+          <div class="st-amount zero" id="sticky-amount">RM0</div>
+        </div>
+      </div>
+      <button onclick="reveal()" id="sticky-btn">Show my payslip</button>
     </div>
-    <div class="field">
-      <label for="spend">What you currently spend per month <span class="optional">(optional)</span></label>
-      <div class="money-wrap"><span>RM</span><input id="spend" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="900"></div>
-    </div>
-    <div class="field">
-      <label for="save">How much do you want to save each month <span class="optional">(optional)</span></label>
-      <div class="money-wrap"><span>RM</span><input id="save" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="400"></div>
-    </div>
-    <button class="primary" onclick="reveal()">Show my payslip</button>
-    <div class="back-row"><button class="ghost" onclick="go('s-check')">Back</button></div>
   </section>
 
-  <!-- SCREEN 4: PAYSLIP -->
-  <section class="screen" id="s-result">
-    <div class="step-label">Your hidden payslip</div>
+  <!-- SCREEN 4: RESULT -->
+  <section class="screen" id="s-result" aria-label="Your result">
+    <div class="step-label">Step 3 / 3 &middot; Complete</div>
+
+    <div class="banner" id="iab-banner">
+      <strong>Heads up:</strong> You're in an in-app browser. Open in Safari or Chrome to save your payslip as an image.
+    </div>
 
     <div id="share-card">
       <div class="payslip">
@@ -256,18 +388,39 @@
         </div>
       </div>
 
+      <div class="verdict" id="verdict"></div>
+
       <div class="compare">
         <div class="c-card">
-          <div class="cl">Your life today costs</div>
+          <div class="cl">Your life today</div>
           <div class="cv" id="c-now">RM &mdash;</div>
         </div>
         <div class="c-card hot">
-          <div class="cl">Same life, no nest</div>
+          <div class="cl">Same life, on your own</div>
           <div class="cv" id="c-real">RM &mdash;</div>
         </div>
       </div>
 
-      <div class="verdict" id="verdict"></div>
+      <!-- Baseline transparency -->
+      <button class="breakdown-toggle" id="bd-toggle" onclick="toggleBreakdown()" aria-expanded="false">
+        <span class="chevron">&#9654;</span> How we got <span id="bd-baseline-label">this number</span>
+      </button>
+      <div class="breakdown-body" id="bd-body"></div>
+
+      <!-- Affordability snapshot: car / house -->
+      <div class="afford-proj" id="afford-proj" style="display:none">
+        <div class="afford-tabs" id="afford-tabs">
+          <button type="button" class="afford-tab on" data-target="car">Car</button>
+          <button type="button" class="afford-tab" data-target="house">House</button>
+        </div>
+        <div class="cp-head" id="afford-head">Your car affordability snapshot</div>
+        <div class="cp-row"><span>Max safe monthly instalment</span><span class="cp-v" id="cp-instalment">RM &mdash;</span></div>
+        <div class="cp-row"><span id="cp-range-label">Estimated car price range</span><span class="cp-v" id="cp-range">RM &mdash;</span></div>
+        <div class="cp-row"><span>Down payment needed (10%)</span><span class="cp-v" id="cp-down">RM &mdash;</span></div>
+        <div class="cp-row"><span>Months to save down payment</span><span class="cp-v" id="cp-months">&mdash;</span></div>
+        <div class="cp-foot" id="cp-foot">Based on a 7-year loan at 3.5% flat rate, with monthly instalment at 15% of your salary. A guide, not financial advice.</div>
+      </div>
+
       <div class="handle">
         <span>Tag someone who needs to see this &middot; calculate yours</span>
         <span class="social-links">
@@ -291,51 +444,88 @@
 </div>
 
 <script>
-// Values from Belanjawanku 2024/25 adjusted with 2025/26 market research
+// ── Data ──────────────────────────────────────────────
 const ITEMS = [
   {id:'rent',  name:'Rent / room covered (living at home)', note:'Median room in PJ / Subang / Cheras', val:650},
   {id:'car',   name:'Car loan paid for you',                note:'Axia / Bezza / Myvi class instalment', val:440},
   {id:'carown',name:'Car insurance, road tax & servicing covered', note:'Insurance + road tax ~RM75, servicing & wear ~RM85', val:160},
   {id:'fuel',  name:'Petrol, toll & parking covered',       note:'Typical KL commute: fuel + tolls + office parking', val:450},
-  {id:'food',  name:'Weekday dinners at home (Mon-Fri)',    note:'~22 dinners a month you don\u2019t pay for', val:260},
+  {id:'food',  name:'Weekday dinners at home (Mon-Fri)',    note:'~22 dinners a month you don’t pay for', val:260},
   {id:'util',  name:'Utilities & wifi covered',             note:'Your share if splitting with 3-4 housemates', val:120},
   {id:'phone', name:'Phone bill covered',                   note:'Typical postpaid plan', val:60},
   {id:'house', name:'Household basics bought for you',      note:'Toiletries, detergent, shared groceries', val:150},
   {id:'stuff', name:'Parents just... buy you things',       note:'Fruits, room items, included in family purchases (est.)', val:150},
 ];
+
+// Independent living baselines (2025/26 Klang Valley), stated as take-home
+// spending — EPF is already deducted before take-home pay, so it isn't
+// listed here as a separate out-of-pocket cost.
+const BASELINE_CAR = {
+  total:2860,
+  items:[
+    {label:'Rent (room in PJ/Subang/Cheras)', val:650},
+    {label:'Car instalment (Axia/Bezza/Myvi)', val:440},
+    {label:'Car insurance, road tax, servicing', val:160},
+    {label:'Petrol, toll & parking', val:450},
+    {label:'Food (groceries + eating out)', val:600},
+    {label:'Utilities & wifi (split)', val:120},
+    {label:'Phone bill', val:60},
+    {label:'Household basics', val:150},
+    {label:'Medical, personal care & misc', val:230},
+  ]
+};
+const BASELINE_NO_CAR = {
+  total:2010,
+  items:[
+    {label:'Rent (room in PJ/Subang/Cheras)', val:650},
+    {label:'Public transport (LRT/MRT/bus)', val:150},
+    {label:'Food (groceries + eating out)', val:550},
+    {label:'Utilities & wifi (split)', val:120},
+    {label:'Phone bill', val:60},
+    {label:'Household basics', val:150},
+    {label:'Medical, personal care & misc', val:230},
+    {label:'Grab / occasional rides', val:100},
+  ]
+};
+
 const state = Object.fromEntries(ITEMS.map(i=>[i.id,false]));
+let usesCar = true;
+let activeAffordTab = 'car';
+let affordData = null;
 
-const tilesEl = document.getElementById('tiles');
-ITEMS.forEach(item=>{
-  const label = document.createElement('label');
-  label.className = 'tile';
-  label.innerHTML = `<input type="checkbox" aria-label="${item.name}"><span class="box"></span>
-    <span class="t-body"><span class="t-name">${item.name}</span><br><span class="t-note">${item.note}</span></span>
-    <span class="t-val">~RM${item.val}</span>`;
-  label.querySelector('input').addEventListener('change', e=>{
-    state[item.id] = e.target.checked;
-    label.classList.toggle('on', e.target.checked);
-  });
-  tilesEl.appendChild(label);
-});
-
+// ── Screen navigation ────────────────────────────────
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo({top:0});
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Move focus to the first heading in the new screen
+  const heading = target.querySelector('h2') || target.querySelector('h1');
+  if(heading && !heading.hasAttribute('tabindex')){
+    heading.setAttribute('tabindex','-1');
+    heading.focus({preventScroll:true});
+  }
+
+  // Show/hide sticky total
+  const sticky = document.getElementById('sticky-total');
+  if(sticky) sticky.classList.toggle('active', id==='s-check');
 }
 
+// ── Intro / bird ─────────────────────────────────────
 function startJourney(){
   const bird = document.getElementById('bird-wrap');
-  if(bird && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  const visited = sessionStorage.getItem('nest-visited');
+  if(bird && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !visited){
     bird.classList.add('leap');
-    setTimeout(()=>go('s-check'), 420);
+    sessionStorage.setItem('nest-visited','1');
+    setTimeout(()=>go('s-salary'), 420);
   } else {
-    go('s-check');
+    go('s-salary');
   }
 }
 
-// ---------- pixel bird & nest (box-shadow sprite technique) ----------
+// ── Pixel bird & nest (box-shadow sprite) ────────────
 function pixels(coords){
   return coords.map(([x,y])=>`${x*4}px ${y*4}px 0 0 currentColor`).join(',');
 }
@@ -362,11 +552,44 @@ function pixels(coords){
   ]);
 })();
 
-// ---------- formatted money inputs (thousand separators, digits only) ----------
+// ── Car toggle ───────────────────────────────────────
+(function initCarToggle(){
+  const container = document.getElementById('car-toggle');
+  if(!container) return;
+  container.addEventListener('click', e=>{
+    const opt = e.target.closest('.toggle-option');
+    if(!opt) return;
+    container.querySelectorAll('.toggle-option').forEach(o=>{
+      o.classList.remove('on');
+      o.setAttribute('aria-pressed','false');
+    });
+    opt.classList.add('on');
+    opt.setAttribute('aria-pressed','true');
+    usesCar = opt.dataset.car === 'yes';
+    updateChecklist();
+    updateLiveTotal();
+  });
+  // Keyboard support
+  container.querySelectorAll('.toggle-option').forEach(opt=>{
+    opt.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); opt.click(); } });
+  });
+})();
+
+// ── Money formatting ─────────────────────────────────
 function formatMoneyInput(el){
   el.addEventListener('input', ()=>{
     let raw = el.value.replace(/[^\d]/g,'').slice(0,7);
     el.value = raw ? Number(raw).toLocaleString('en-MY') : '';
+  });
+  el.addEventListener('blur', ()=>{
+    const hint = document.getElementById(el.id + '-hint');
+    if(hint){
+      hint.classList.toggle('show', !el.value.trim());
+    }
+  });
+  el.addEventListener('focus', ()=>{
+    const hint = document.getElementById(el.id + '-hint');
+    if(hint) hint.classList.remove('show');
   });
 }
 ['salary','spend','save'].forEach(id=>formatMoneyInput(document.getElementById(id)));
@@ -378,20 +601,161 @@ function rawNum(id){
 
 function fmt(n){ return 'RM' + Math.round(n).toLocaleString('en-MY'); }
 
+// ── Checklist ────────────────────────────────────────
+const tilesEl = document.getElementById('tiles');
+const CAR_IDS = ['car','carown','fuel'];
+
+function updateChecklist(){
+  // Show/hide car items based on toggle
+  document.querySelectorAll('.tile').forEach(tile=>{
+    const input = tile.querySelector('input');
+    if(!input) return;
+    const id = input.getAttribute('data-id');
+    if(CAR_IDS.includes(id)){
+      tile.style.display = usesCar ? 'flex' : 'none';
+      if(!usesCar && state[id]){
+        // Untick hidden car items
+        state[id] = false;
+        tile.classList.remove('on');
+        input.checked = false;
+      }
+    }
+  });
+}
+
+function updateLiveTotal(){
+  const picked = ITEMS.filter(i=>state[i.id] && (usesCar || !CAR_IDS.includes(i.id)));
+  const total = picked.reduce((s,i)=>s+i.val,0);
+  const amtEl = document.getElementById('sticky-amount');
+  amtEl.textContent = total > 0 ? fmt(total) : 'RM0';
+  amtEl.classList.toggle('zero', total === 0);
+  document.getElementById('sticky-total').classList.toggle('active', true);
+}
+
+ITEMS.forEach(item=>{
+  const label = document.createElement('label');
+  label.className = 'tile';
+  label.innerHTML = `<input type="checkbox" data-id="${item.id}" aria-label="${item.name}"><span class="box"></span>
+    <span class="t-body"><span class="t-name">${item.name}</span><br><span class="t-note">${item.note}</span></span>
+    <span class="t-val">~RM${item.val}</span>`;
+  label.querySelector('input').addEventListener('change', e=>{
+    state[item.id] = e.target.checked;
+    label.classList.toggle('on', e.target.checked);
+    updateLiveTotal();
+  });
+  tilesEl.appendChild(label);
+});
+
+// ── Baseline breakdown ───────────────────────────────
+function renderBreakdown(){
+  const baseline = usesCar ? BASELINE_CAR : BASELINE_NO_CAR;
+  const body = document.getElementById('bd-body');
+  body.innerHTML = baseline.items.map(i=>
+    `<div class="bd-line"><span>${i.label}</span><span class="bd-v">RM${i.val}</span></div>`
+  ).join('') + `<div class="bd-line" style="border-top:1px solid rgba(250,247,240,.15);margin-top:6px;padding-top:8px;font-weight:600;color:var(--paper)"><span>Total</span><span class="bd-v" style="color:var(--hi)">RM${baseline.total}</span></div>`;
+
+  document.getElementById('bd-baseline-label').textContent = fmt(baseline.total) + '?';
+  document.getElementById('bd-toggle').classList.remove('open');
+  document.getElementById('bd-body').classList.remove('open');
+  document.getElementById('bd-toggle').setAttribute('aria-expanded','false');
+}
+
+function toggleBreakdown(){
+  const toggle = document.getElementById('bd-toggle');
+  const body = document.getElementById('bd-body');
+  const open = body.classList.contains('open');
+  toggle.classList.toggle('open', !open);
+  body.classList.toggle('open', !open);
+  toggle.setAttribute('aria-expanded', String(!open));
+}
+
+// ── In-app browser detection ─────────────────────────
+function isInAppBrowser(){
+  return /Instagram|FBAN|FBAV|TikTok|Line\//i.test(navigator.userAgent || '');
+}
+
+// ── Affordability snapshot: car / house ──────────────
+function renderAffordability(salary, nest){
+  const proj = document.getElementById('afford-proj');
+  if(!salary){ proj.style.display = 'none'; affordData = null; return; }
+  proj.style.display = 'block';
+
+  // Car: 7-year hire purchase, 3.5% flat rate, 15% of salary, 90% financing
+  const carBudget = Math.round(salary * 0.15);
+  const carYears = 7, carFlat = 0.035;
+  const carLoan = Math.round(carBudget * 12 * carYears / (1 + carFlat * carYears));
+  const carPrice = Math.round(carLoan / 0.9);
+  const carDown = Math.round(carPrice * 0.1);
+  const carMonths = nest > 0 ? Math.ceil(carDown / nest) : null;
+
+  // House: 35-year home loan, ~4.0% p.a. reducing balance, 30% of salary, 90% financing
+  const houseBudget = Math.round(salary * 0.30);
+  const houseYears = 35, houseRate = 0.04 / 12, houseN = houseYears * 12;
+  const houseFactor = (1 - Math.pow(1 + houseRate, -houseN)) / houseRate;
+  const houseLoan = Math.round(houseBudget * houseFactor);
+  const housePrice = Math.round(houseLoan / 0.9);
+  const houseDown = Math.round(housePrice * 0.1);
+  const houseMonths = nest > 0 ? Math.ceil(houseDown / nest) : null;
+
+  affordData = {
+    car:{
+      head:'Your car affordability snapshot',
+      instalment: fmt(carBudget) + '/month',
+      rangeLabel:'Estimated car price range',
+      range: fmt(Math.max(0,carPrice-10000)) + ' – ' + fmt(carPrice),
+      down: fmt(carDown),
+      months: carMonths ? `${carMonths} months (saving your nest allowance of ${fmt(nest)}/month)` : 'Tick a subsidy above to calculate',
+      foot:'Based on a 7-year loan at 3.5% flat rate, with monthly instalment at 15% of your salary. A guide, not financial advice.'
+    },
+    house:{
+      head:'Your house affordability snapshot',
+      instalment: fmt(houseBudget) + '/month',
+      rangeLabel:'Estimated property price range',
+      range: fmt(Math.max(0,housePrice-40000)) + ' – ' + fmt(housePrice),
+      down: fmt(houseDown),
+      months: houseMonths ? `${houseMonths} months (saving your nest allowance of ${fmt(nest)}/month)` : 'Tick a subsidy above to calculate',
+      foot:'Based on a 35-year home loan at ~4.0% p.a., with monthly instalment at 30% of your salary. A guide, not financial advice.'
+    }
+  };
+  paintAffordTab(activeAffordTab);
+}
+
+function paintAffordTab(tab){
+  if(!affordData) return;
+  activeAffordTab = tab;
+  const d = affordData[tab];
+  document.getElementById('afford-head').textContent = d.head;
+  document.getElementById('cp-instalment').textContent = d.instalment;
+  document.getElementById('cp-range-label').textContent = d.rangeLabel;
+  document.getElementById('cp-range').textContent = d.range;
+  document.getElementById('cp-down').textContent = d.down;
+  document.getElementById('cp-months').textContent = d.months;
+  document.getElementById('cp-foot').textContent = d.foot;
+  document.querySelectorAll('.afford-tab').forEach(btn=>{
+    btn.classList.toggle('on', btn.dataset.target===tab);
+  });
+}
+
+document.getElementById('afford-tabs').addEventListener('click', e=>{
+  const btn = e.target.closest('.afford-tab');
+  if(!btn) return;
+  paintAffordTab(btn.dataset.target);
+});
+
+// ── Reveal result ────────────────────────────────────
 function reveal(){
-  const picked = ITEMS.filter(i=>state[i.id]);
+  const picked = ITEMS.filter(i=>state[i.id] && (usesCar || !CAR_IDS.includes(i.id)));
   const nest = picked.reduce((s,i)=>s+i.val,0);
   const salary = rawNum('salary');
   const spendInput = rawNum('spend');
   const saveGoal = rawNum('save') || 0;
+  const baseline = usesCar ? BASELINE_CAR.total : BASELINE_NO_CAR.total;
 
-  // Reality-tested independent budgets (2025/26): RM3,060 with car / RM2,160 public transport
-  const usesCar = state.car || state.carown || state.fuel;
-  const baseline = usesCar ? 3060 : 2160;
   const now = spendInput !== null ? spendInput : Math.max(baseline - nest, 300);
   const real = now + nest;
   const target = real + saveGoal;
 
+  // Pay-slip lines
   const linesEl = document.getElementById('ps-lines');
   linesEl.innerHTML = picked.length
     ? picked.map(i=>`<div class="ps-line"><span class="n">${i.name}</span><span class="v">${fmt(i.val)}</span></div>`).join('')
@@ -401,6 +765,7 @@ function reveal(){
   document.getElementById('c-now').textContent = fmt(now);
   document.getElementById('c-real').textContent = fmt(real);
 
+  // Stamp + verdict
   const stamp = document.getElementById('stamp');
   const verdict = document.getElementById('verdict');
   const goalNote = saveGoal>0
@@ -425,8 +790,18 @@ function reveal(){
     verdict.innerHTML = `Your nest quietly covers <b>${fmt(nest)}/month</b> of your life. Before you sign any lease or car loan, make sure your salary covers <b>${fmt(target)}</b>, not ${fmt(now)}.${saveGoal>0 ? ` That already includes your ${fmt(saveGoal)}/month savings goal.` : ` That's your real number.`}`;
   }
 
+  // Baseline breakdown
+  renderBreakdown();
+
+  // Affordability snapshot (car / house)
+  renderAffordability(salary, nest);
+
+  // In-app browser banner
+  document.getElementById('iab-banner').classList.toggle('show', isInAppBrowser());
+
   go('s-result');
 
+  // Animate total
   const amtEl = document.getElementById('total-amt');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduce || nest===0){ amtEl.textContent = fmt(nest); return; }
@@ -440,10 +815,7 @@ function reveal(){
   requestAnimationFrame(tick);
 }
 
-function isInAppBrowser(){
-  return /Instagram|FBAN|FBAV|TikTok|Line\//i.test(navigator.userAgent || '');
-}
-
+// ── Save / share image ───────────────────────────────
 async function saveImage(){
   const btn = document.getElementById('save-btn');
   const card = document.getElementById('share-card');
@@ -456,7 +828,7 @@ async function saveImage(){
     canvas = await html2canvas(card, {scale:2, backgroundColor:'#0F3B3A', useCORS:true});
   }catch(err){
     console.error(err);
-    reset('Couldn\u2019t save. Try a screenshot instead', 3000);
+    reset('Couldn’t save. Try a screenshot instead', 3000);
     return;
   }
 
@@ -465,7 +837,7 @@ async function saveImage(){
       const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
       const file = new File([blob], 'my-nest-payslip.png', {type:'image/png'});
       if(navigator.canShare({files:[file]})){
-        await navigator.share({files:[file], title:'My hidden payslip', text:'calculate yours \u00b7 @thejoelwong'});
+        await navigator.share({files:[file], title:'My hidden payslip', text:'calculate yours · @thejoelwong'});
         reset('Shared!', 2500);
         return;
       }
@@ -486,18 +858,39 @@ async function saveImage(){
     reset('Saved! Check your downloads', 2500);
   }catch(err){
     console.error(err);
-    reset(isInAppBrowser() ? 'Open in Safari/Chrome to save' : 'Couldn\u2019t save. Try a screenshot instead', 3000);
+    reset(isInAppBrowser() ? 'Open in Safari/Chrome to save' : 'Couldn’t save. Try a screenshot instead', 3000);
   }
 }
 
+// ── Restart ──────────────────────────────────────────
 function restart(){
   ITEMS.forEach(i=>state[i.id]=false);
   document.querySelectorAll('.tile').forEach(t=>{t.classList.remove('on');t.querySelector('input').checked=false;});
   document.getElementById('salary').value='';
   document.getElementById('spend').value='';
   document.getElementById('save').value='';
+  // Reset car toggle
+  usesCar = true;
+  const ct = document.getElementById('car-toggle');
+  if(ct){
+    ct.querySelectorAll('.toggle-option').forEach(o=>{
+      o.classList.toggle('on', o.dataset.car==='yes');
+      o.setAttribute('aria-pressed', o.dataset.car==='yes'?'true':'false');
+    });
+  }
+  updateChecklist();
+  updateLiveTotal();
   const bird = document.getElementById('bird-wrap');
   if(bird) bird.classList.remove('leap');
+  document.getElementById('iab-banner').classList.remove('show');
+  document.getElementById('sticky-amount').textContent = 'RM0';
+  document.getElementById('sticky-amount').classList.add('zero');
+  document.getElementById('salary-hint').classList.remove('show');
+  document.getElementById('spend-hint').classList.remove('show');
+  document.getElementById('save-hint').classList.remove('show');
+  activeAffordTab = 'car';
+  document.querySelectorAll('.afford-tab').forEach(btn=>btn.classList.toggle('on', btn.dataset.target==='car'));
+  document.getElementById('afford-proj').style.display = 'none';
   go('s-intro');
 }
 </script>
