@@ -133,10 +133,15 @@
   .c-card.hot{border-color:var(--hi)}
   .c-card.hot .cv{color:var(--hi)}
   .handle{
-    margin-top:16px;text-align:center;font-family:'IBM Plex Mono',monospace;
-    font-size:13px;color:var(--hi);letter-spacing:.06em;padding-bottom:10px;
+    margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:8px;
+    font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--hi);
+    letter-spacing:.06em;text-align:center;padding-bottom:10px;
   }
+  .social-links{display:flex;gap:14px}
+  .social-links a{color:var(--hi);display:inline-flex;transition:opacity .15s ease}
+  .social-links a:hover,.social-links a:active{opacity:.65}
   .src{font-size:11px;color:#7FA79F;margin-top:18px;line-height:1.6}
+  .src a{color:var(--hi)}
   .back-row{margin-top:auto;padding-top:10px}
 
   @media (prefers-reduced-motion: reduce){
@@ -224,6 +229,10 @@
       <label for="spend">What you currently spend per month <span class="optional">(optional)</span></label>
       <div class="money-wrap"><span>RM</span><input id="spend" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="900"></div>
     </div>
+    <div class="field">
+      <label for="save">How much do you want to save each month <span class="optional">(optional)</span></label>
+      <div class="money-wrap"><span>RM</span><input id="save" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="400"></div>
+    </div>
     <button class="primary" onclick="reveal()">Show my payslip</button>
     <div class="back-row"><button class="ghost" onclick="go('s-check')">Back</button></div>
   </section>
@@ -259,12 +268,22 @@
       </div>
 
       <div class="verdict" id="verdict"></div>
-      <div class="handle">Tag someone who needs to see this &middot; calculate yours &middot; @thejoelwong</div>
+      <div class="handle">
+        <span>Tag someone who needs to see this &middot; calculate yours</span>
+        <span class="social-links">
+          <a href="https://www.instagram.com/thejoelwong/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/joel-wong-wui-ern/" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2.2"/><path d="M9 9h4v2.2c.7-1.4 2.2-2.5 4.3-2.5 3.6 0 5.7 2.4 5.7 6.6V21h-4v-6.7c0-2-.7-3.4-2.5-3.4-1.4 0-2.2.9-2.6 1.8-.1.3-.2.8-.2 1.3V21H9V9z"/></svg>
+          </a>
+        </span>
+      </div>
     </div>
 
     <button class="primary" onclick="saveImage()" id="save-btn">Save my result as an image</button>
 
-    <p class="src">Estimates: Belanjawanku 2024/25 (EPF &times; UM SWRC) adjusted with 2025/26 market data (rental portals, Perodua financing, RapidKL). A guide, not financial advice.</p>
+    <p class="src">Estimates: Belanjawanku 2024/25 (EPF &times; UM SWRC) adjusted with 2025/26 market data (rental portals, Perodua financing, RapidKL). A guide, not financial advice. <a href="https://docs.google.com/document/d/10NKhKMp_f60VOLqEPmYb5Jaawq6sXS5XIN-yoXdfL6k/edit?usp=sharing" target="_blank" rel="noopener">See the full research &rarr;</a></p>
 
     <button class="ghost" onclick="restart()">Recalculate</button>
   </section>
@@ -350,7 +369,7 @@ function formatMoneyInput(el){
     el.value = raw ? Number(raw).toLocaleString('en-MY') : '';
   });
 }
-['salary','spend'].forEach(id=>formatMoneyInput(document.getElementById(id)));
+['salary','spend','save'].forEach(id=>formatMoneyInput(document.getElementById(id)));
 
 function rawNum(id){
   const v = document.getElementById(id).value.replace(/[^\d]/g,'');
@@ -364,12 +383,14 @@ function reveal(){
   const nest = picked.reduce((s,i)=>s+i.val,0);
   const salary = rawNum('salary');
   const spendInput = rawNum('spend');
+  const saveGoal = rawNum('save') || 0;
 
   // Reality-tested independent budgets (2025/26): RM3,060 with car / RM2,160 public transport
   const usesCar = state.car || state.carown || state.fuel;
   const baseline = usesCar ? 3060 : 2160;
   const now = spendInput !== null ? spendInput : Math.max(baseline - nest, 300);
   const real = now + nest;
+  const target = real + saveGoal;
 
   const linesEl = document.getElementById('ps-lines');
   linesEl.innerHTML = picked.length
@@ -382,23 +403,26 @@ function reveal(){
 
   const stamp = document.getElementById('stamp');
   const verdict = document.getElementById('verdict');
+  const goalNote = saveGoal>0
+    ? ` Factor in your ${fmt(saveGoal)}/month savings goal and you'd want to be earning at least <b>${fmt(target)}</b>.`
+    : '';
   if(nest===0){
     stamp.textContent = 'Independent';
-    verdict.innerHTML = `You're carrying your full cost of living already. Whatever you've built, you built it at full price. Respect.`;
+    verdict.innerHTML = `You're carrying your full cost of living already. Whatever you've built, you built it at full price. Respect.${saveGoal>0 ? ` To also save ${fmt(saveGoal)}/month on top of that, aim for <b>${fmt(now+saveGoal)}</b>.` : ''}`;
   } else if(salary){
-    if(salary >= real*1.15){
+    if(salary >= target*1.15){
       stamp.textContent = 'Ready to fly';
-      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. On your salary, the jump is survivable with room to breathe. The nest was a boost, not a crutch.`;
-    } else if(salary >= real){
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. On your salary, the jump is survivable with room to breathe. The nest was a boost, not a crutch.${goalNote}`;
+    } else if(salary >= target){
       stamp.textContent = 'Tight squeeze';
-      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. You can technically afford to leave, but there's almost zero buffer. One car repair and the month collapses.`;
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. You can technically afford to leave, but there's almost zero buffer. One car repair and the month collapses.${goalNote}`;
     } else {
       stamp.textContent = 'Stay in nest';
-      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>, which is <b>${fmt(real-salary)} more</b> than you take home. Moving out today means going backwards financially. Use the nest deliberately: save the gap, grow the income, then jump.`;
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>${saveGoal>0 ? ` (or <b>${fmt(target)}</b> once your savings goal is in)` : ''}, which is <b>${fmt(target-salary)} more</b> than you take home. Moving out today means going backwards financially. Use the nest deliberately: save the gap, grow the income, then jump.`;
     }
   } else {
     stamp.textContent = 'Subsidised';
-    verdict.innerHTML = `Your nest quietly covers <b>${fmt(nest)}/month</b> of your life. Before you sign any lease or car loan, make sure your salary covers <b>${fmt(real)}</b>, not ${fmt(now)}. That's your real number.`;
+    verdict.innerHTML = `Your nest quietly covers <b>${fmt(nest)}/month</b> of your life. Before you sign any lease or car loan, make sure your salary covers <b>${fmt(target)}</b>, not ${fmt(now)}.${saveGoal>0 ? ` That already includes your ${fmt(saveGoal)}/month savings goal.` : ` That's your real number.`}`;
   }
 
   go('s-result');
@@ -471,6 +495,7 @@ function restart(){
   document.querySelectorAll('.tile').forEach(t=>{t.classList.remove('on');t.querySelector('input').checked=false;});
   document.getElementById('salary').value='';
   document.getElementById('spend').value='';
+  document.getElementById('save').value='';
   const bird = document.getElementById('bird-wrap');
   if(bird) bird.classList.remove('leap');
   go('s-intro');
