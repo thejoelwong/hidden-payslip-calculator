@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaving the Nest Calculator</title>
+<meta name="description" content="A 2-minute exercise to see what your family quietly covers for you, and what it'd really cost to live on your own in the Klang Valley.">
+<meta property="og:title" content="Leaving the Nest Calculator">
+<meta property="og:description" content="How much of your life is quietly paid for? Find your real cost of living in the Klang Valley.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --ink-teal:#0F3B3A;
+    --teal-deep:#0A2B2A;
+    --paper:#FAF7F0;
+    --ink:#1C201D;
+    --hi:#FFD23F;
+    --stamp:#D2452B;
+    --mute:#5C6B66;
+    --twig:#8B5E34;
+    --twig-dark:#5E3D1F;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    background:linear-gradient(180deg,var(--ink-teal),var(--teal-deep));
+    color:var(--paper);
+    min-height:100vh;
+    display:flex;justify-content:center;
+  }
+  .app{width:100%;max-width:430px;padding:24px 20px 48px;display:flex;flex-direction:column;min-height:100vh}
+  @supports (min-height: 100dvh){ .app{min-height:100dvh} }
+  .screen{display:none;flex-direction:column;flex:1}
+  .screen.active{display:flex}
+
+  /* ---------- intro ---------- */
+  .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--hi);font-weight:700;margin-bottom:14px}
+  h1{font-family:'Archivo Black',sans-serif;font-size:clamp(32px,8.5vw,42px);line-height:1.06;text-transform:uppercase}
+  h1 .hl{background:var(--hi);color:var(--ink);padding:0 6px;display:inline-block;transform:rotate(-1deg)}
+  .sub{margin-top:16px;font-size:16px;line-height:1.55;color:#CFE0DB;max-width:34ch}
+  .nest-mark{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#7FA79F;margin-top:auto;padding-top:28px;line-height:1.6}
+
+  /* ---------- shared ---------- */
+  button.primary{
+    margin-top:28px;width:100%;padding:18px;border:none;border-radius:14px;
+    background:var(--hi);color:var(--ink);font-family:'Space Grotesk';font-weight:700;
+    font-size:17px;cursor:pointer;transition:transform .12s ease;
+  }
+  button.primary:active{transform:scale(.98)}
+  button.primary:focus-visible,button.ghost:focus-visible,.tile:focus-within{outline:3px solid var(--hi);outline-offset:3px}
+  button.ghost{
+    margin-top:12px;width:100%;padding:14px;border:1px solid rgba(250,247,240,.35);border-radius:14px;
+    background:transparent;color:var(--paper);font-family:'Space Grotesk';font-weight:500;font-size:15px;cursor:pointer;
+  }
+  .step-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--hi);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  h2{font-family:'Archivo Black',sans-serif;font-size:26px;line-height:1.15;text-transform:uppercase;margin-bottom:6px}
+  .hint{font-size:14px;color:#B9CFC9;margin-bottom:20px;line-height:1.45}
+
+  /* ---------- checklist ---------- */
+  .tiles{display:flex;flex-direction:column;gap:10px}
+  .tile{
+    display:flex;align-items:center;gap:14px;background:rgba(250,247,240,.06);
+    border:1px solid rgba(250,247,240,.14);border-radius:14px;padding:14px 16px;cursor:pointer;
+    transition:background .15s ease,border-color .15s ease,transform .12s ease;user-select:none;position:relative;
+  }
+  .tile:active{transform:scale(.97)}
+  .progress{height:4px;border-radius:2px;background:rgba(250,247,240,.18);margin-bottom:20px;overflow:hidden}
+  .progress .fill{display:block;height:100%;width:0;background:var(--hi);border-radius:2px;transition:width .3s ease}
+  .tile input{position:absolute;opacity:0;pointer-events:none}
+  .tile .box{
+    width:26px;height:26px;border-radius:8px;border:2px solid rgba(250,247,240,.4);
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:var(--ink);font-size:16px;transition:all .15s ease;
+  }
+  .tile.on{background:rgba(255,210,63,.12);border-color:var(--hi)}
+  .tile.on .box{background:var(--hi);border-color:var(--hi)}
+  .tile.on .box::after{content:"\2713"}
+  .tile .t-body{flex:1;min-width:0}
+  .tile .t-name{font-weight:500;font-size:15px;line-height:1.3}
+  .tile .t-note{font-size:12px;color:#8FAAA3;line-height:1.35;margin-top:2px}
+  .tile .t-val{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#9FC2BA;white-space:nowrap;padding-left:8px;align-self:flex-start;padding-top:2px}
+
+  /* ---------- salary ---------- */
+  .field{margin-bottom:18px}
+  .field label{display:block;font-size:14px;font-weight:500;margin-bottom:8px;color:#DCEAE5}
+  .money-wrap{display:flex;align-items:center;background:rgba(250,247,240,.08);border:1px solid rgba(250,247,240,.2);border-radius:14px;padding:0 16px}
+  .money-wrap span{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--hi);font-size:18px}
+  .money-wrap input{
+    flex:1;background:transparent;border:none;color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;padding:16px 10px;width:100%;
+  }
+  .money-wrap input:focus{outline:none}
+  .money-wrap:focus-within{border-color:var(--hi)}
+  .optional{font-weight:400;color:#8FAAA3;font-size:12px}
+
+  /* ---------- payslip ---------- */
+  #share-card{background:linear-gradient(180deg,var(--ink-teal),var(--teal-deep));padding:8px 4px 4px;border-radius:4px}
+  .payslip{
+    background:var(--paper);color:var(--ink);border-radius:4px;padding:26px 22px 30px;
+    font-family:'IBM Plex Mono',monospace;position:relative;margin-top:8px;
+    box-shadow:0 18px 40px rgba(0,0,0,.35);
+  }
+  .ps-head{text-align:center;border-bottom:2px dashed #B9B4A6;padding-bottom:14px;margin-bottom:14px}
+  .ps-co{font-family:'Archivo Black',sans-serif;font-size:19px;text-transform:uppercase;letter-spacing:.02em}
+  .ps-sub{font-size:11px;color:var(--mute);margin-top:4px;letter-spacing:.08em;text-transform:uppercase}
+  .ps-line{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;gap:10px}
+  .ps-line .n{color:#3E4742}
+  .ps-line .v{font-weight:600;white-space:nowrap}
+  .ps-total{border-top:2px dashed #B9B4A6;margin-top:12px;padding-top:14px}
+  .ps-total .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--mute)}
+  .ps-total .amt{font-family:'Archivo Black',sans-serif;font-size:38px;margin-top:4px;line-height:1}
+  .ps-total .per{font-size:12px;color:var(--mute);margin-top:6px}
+  .stamp{
+    position:absolute;top:16px;right:14px;transform:rotate(8deg);
+    border:3px solid var(--stamp);color:var(--stamp);font-family:'Archivo Black',sans-serif;
+    font-size:12px;padding:5px 9px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;
+    opacity:.9;
+  }
+  .verdict{
+    margin-top:14px;background:rgba(250,247,240,.07);border:1px solid rgba(250,247,240,.16);
+    border-radius:14px;padding:18px;font-size:14px;line-height:1.55;color:#DCEAE5;
+  }
+  .verdict b{color:var(--hi)}
+  .compare{display:flex;gap:10px;margin-top:14px}
+  .c-card{flex:1;background:rgba(250,247,240,.07);border:1px solid rgba(250,247,240,.16);border-radius:14px;padding:14px}
+  .c-card .cl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#9FC2BA;line-height:1.4}
+  .c-card .cv{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-top:6px}
+  .c-card.hot{border-color:var(--hi)}
+  .c-card.hot .cv{color:var(--hi)}
+  .handle{
+    margin-top:16px;text-align:center;font-family:'IBM Plex Mono',monospace;
+    font-size:13px;color:var(--hi);letter-spacing:.06em;padding-bottom:10px;
+  }
+  .src{font-size:11px;color:#7FA79F;margin-top:18px;line-height:1.6}
+  .back-row{margin-top:auto;padding-top:10px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none!important;animation:none!important}
+  }
+
+  /* ---------- nest scene (pixel bird) ---------- */
+  .nest-scene{position:relative;width:100%;height:132px;margin:20px 0 0;flex-shrink:0}
+  .bird-wrap{position:absolute;left:50%;bottom:14px;width:32px;height:24px;transform:translate(-50%,0);animation:birdJump 3.2s ease-in-out infinite}
+  .bird-wrap.leap{animation:birdLeap .6s ease-in forwards}
+  .bird-body,.bird-eye,.bird-beak{position:absolute;left:0;top:0;width:4px;height:4px}
+  .bird-body{color:var(--hi)}
+  .bird-eye{color:var(--ink)}
+  .bird-beak{color:var(--stamp)}
+  .wing{position:absolute;left:0;top:8px;width:4px;height:4px;background:#E6B72E;animation:wingFlap .5s steps(2) infinite}
+  .nest-wrap{position:absolute;left:50%;bottom:0;width:48px;height:16px;transform:translateX(-50%)}
+  .nest-rim,.nest-bowl{position:absolute;left:0;top:0;width:4px;height:4px}
+  .nest-rim{color:var(--twig)}
+  .nest-bowl{color:var(--twig-dark)}
+  @keyframes birdJump{
+    0%,100%{transform:translate(-50%,0)}
+    8%{transform:translate(-50%,2px) scaleY(.85)}
+    26%{transform:translate(-50%,-46px)}
+    42%{transform:translate(-50%,-2px)}
+    48%,52%{transform:translate(-50%,0) scaleY(.95)}
+  }
+  @keyframes birdLeap{
+    0%{transform:translate(-50%,0) rotate(0)}
+    100%{transform:translate(-50%,-170px) rotate(-10deg);opacity:0}
+  }
+  @keyframes wingFlap{
+    0%,49%{top:8px}
+    50%,100%{top:16px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SCREEN 1: INTRO -->
+  <section class="screen active" id="s-intro">
+    <div class="eyebrow">Leaving the Nest Calculator</div>
+    <h1>How much of your life is <span class="hl">quietly paid for?</span></h1>
+    <p class="sub">A quick exercise to see what's currently covered for you in your day-to-day, and how much you'd actually need to earn if you decided to live on your own in the Klang Valley.</p>
+
+    <div class="nest-scene" aria-hidden="true">
+      <div class="bird-wrap" id="bird-wrap">
+        <div class="bird-body" id="bird-body"></div>
+        <div class="bird-eye" id="bird-eye"></div>
+        <div class="bird-beak" id="bird-beak"></div>
+        <div class="wing"></div>
+      </div>
+      <div class="nest-wrap">
+        <div class="nest-rim" id="nest-rim"></div>
+        <div class="nest-bowl" id="nest-bowl"></div>
+      </div>
+    </div>
+
+    <button class="primary" onclick="startJourney()">Start the exercise</button>
+    <div class="nest-mark">MY &middot; Klang Valley &middot; Belanjawanku 2024/25 + 2025/26 market data<br>by @thejoelwong</div>
+  </section>
+
+  <!-- SCREEN 2: CHECKLIST -->
+  <section class="screen" id="s-check">
+    <div class="step-label">Step 1 / 2</div>
+    <div class="progress" aria-hidden="true"><span class="fill" style="width:50%"></span></div>
+    <h2>What's covered for you?</h2>
+    <p class="hint">Tick everything you don't currently pay for yourself. Be honest, nobody's watching.</p>
+    <div class="tiles" id="tiles"></div>
+    <button class="primary" onclick="go('s-salary')">Next</button>
+    <div class="back-row"><button class="ghost" onclick="go('s-intro')">Back</button></div>
+  </section>
+
+  <!-- SCREEN 3: SALARY -->
+  <section class="screen" id="s-salary">
+    <div class="step-label">Step 2 / 2</div>
+    <div class="progress" aria-hidden="true"><span class="fill" style="width:100%"></span></div>
+    <h2>Your numbers</h2>
+    <p class="hint">So we can tell you if the jump is survivable.</p>
+    <div class="field">
+      <label for="salary">Monthly take-home salary <span class="optional">(optional)</span></label>
+      <div class="money-wrap"><span>RM</span><input id="salary" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="2,800"></div>
+    </div>
+    <div class="field">
+      <label for="spend">What you currently spend per month <span class="optional">(optional)</span></label>
+      <div class="money-wrap"><span>RM</span><input id="spend" type="text" inputmode="numeric" pattern="[0-9,]*" placeholder="900"></div>
+    </div>
+    <button class="primary" onclick="reveal()">Show my payslip</button>
+    <div class="back-row"><button class="ghost" onclick="go('s-check')">Back</button></div>
+  </section>
+
+  <!-- SCREEN 4: PAYSLIP -->
+  <section class="screen" id="s-result">
+    <div class="step-label">Your hidden payslip</div>
+
+    <div id="share-card">
+      <div class="payslip">
+        <div class="stamp" id="stamp">Subsidised</div>
+        <div class="ps-head">
+          <div class="ps-co">Mum &amp; Dad Sdn Bhd</div>
+          <div class="ps-sub">Monthly nest allowance &middot; unofficial payslip</div>
+        </div>
+        <div id="ps-lines"></div>
+        <div class="ps-total">
+          <div class="lbl">Total nest allowance</div>
+          <div class="amt" id="total-amt">RM0</div>
+          <div class="per" id="total-year"></div>
+        </div>
+      </div>
+
+      <div class="compare">
+        <div class="c-card">
+          <div class="cl">Your life today costs</div>
+          <div class="cv" id="c-now">RM &mdash;</div>
+        </div>
+        <div class="c-card hot">
+          <div class="cl">Same life, no nest</div>
+          <div class="cv" id="c-real">RM &mdash;</div>
+        </div>
+      </div>
+
+      <div class="verdict" id="verdict"></div>
+      <div class="handle">Tag someone who needs to see this &middot; calculate yours &middot; @thejoelwong</div>
+    </div>
+
+    <button class="primary" onclick="saveImage()" id="save-btn">Save my result as an image</button>
+
+    <p class="src">Estimates: Belanjawanku 2024/25 (EPF &times; UM SWRC) adjusted with 2025/26 market data (rental portals, Perodua financing, RapidKL). A guide, not financial advice.</p>
+
+    <button class="ghost" onclick="restart()">Recalculate</button>
+  </section>
+
+</div>
+
+<script>
+// Values from Belanjawanku 2024/25 adjusted with 2025/26 market research
+const ITEMS = [
+  {id:'rent',  name:'Rent / room covered (living at home)', note:'Median room in PJ / Subang / Cheras', val:650},
+  {id:'car',   name:'Car loan paid for you',                note:'Axia / Bezza / Myvi class instalment', val:440},
+  {id:'carown',name:'Car insurance, road tax & servicing covered', note:'Insurance + road tax ~RM75, servicing & wear ~RM85', val:160},
+  {id:'fuel',  name:'Petrol, toll & parking covered',       note:'Typical KL commute: fuel + tolls + office parking', val:450},
+  {id:'food',  name:'Weekday dinners at home (Mon-Fri)',    note:'~22 dinners a month you don\u2019t pay for', val:260},
+  {id:'util',  name:'Utilities & wifi covered',             note:'Your share if splitting with 3-4 housemates', val:120},
+  {id:'phone', name:'Phone bill covered',                   note:'Typical postpaid plan', val:60},
+  {id:'house', name:'Household basics bought for you',      note:'Toiletries, detergent, shared groceries', val:150},
+  {id:'stuff', name:'Parents just... buy you things',       note:'Fruits, room items, included in family purchases (est.)', val:150},
+];
+const state = Object.fromEntries(ITEMS.map(i=>[i.id,false]));
+
+const tilesEl = document.getElementById('tiles');
+ITEMS.forEach(item=>{
+  const label = document.createElement('label');
+  label.className = 'tile';
+  label.innerHTML = `<input type="checkbox" aria-label="${item.name}"><span class="box"></span>
+    <span class="t-body"><span class="t-name">${item.name}</span><br><span class="t-note">${item.note}</span></span>
+    <span class="t-val">~RM${item.val}</span>`;
+  label.querySelector('input').addEventListener('change', e=>{
+    state[item.id] = e.target.checked;
+    label.classList.toggle('on', e.target.checked);
+  });
+  tilesEl.appendChild(label);
+});
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0});
+}
+
+function startJourney(){
+  const bird = document.getElementById('bird-wrap');
+  if(bird && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    bird.classList.add('leap');
+    setTimeout(()=>go('s-check'), 420);
+  } else {
+    go('s-check');
+  }
+}
+
+// ---------- pixel bird & nest (box-shadow sprite technique) ----------
+function pixels(coords){
+  return coords.map(([x,y])=>`${x*4}px ${y*4}px 0 0 currentColor`).join(',');
+}
+(function initNestScene(){
+  const body = document.getElementById('bird-body');
+  if(!body) return;
+  body.style.boxShadow = pixels([
+    [3,0],[4,0],
+    [2,1],[3,1],[4,1],
+    [1,2],[2,2],[3,2],[4,2],[6,2],
+    [0,3],[1,3],[2,3],[3,3],[4,3],[6,3],
+    [1,4],[2,4],[3,4],[4,4],
+    [2,5],[3,5],[4,5]
+  ]);
+  document.getElementById('bird-eye').style.boxShadow = pixels([[5,1]]);
+  document.getElementById('bird-beak').style.boxShadow = pixels([[7,2],[7,3]]);
+  document.getElementById('nest-rim').style.boxShadow = pixels([
+    [0,0],[2,0],[4,0],[7,0],[9,0],[11,0],
+    [0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[9,1],[10,1],[11,1]
+  ]);
+  document.getElementById('nest-bowl').style.boxShadow = pixels([
+    [1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],[8,2],[9,2],[10,2],
+    [2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[9,3]
+  ]);
+})();
+
+// ---------- formatted money inputs (thousand separators, digits only) ----------
+function formatMoneyInput(el){
+  el.addEventListener('input', ()=>{
+    let raw = el.value.replace(/[^\d]/g,'').slice(0,7);
+    el.value = raw ? Number(raw).toLocaleString('en-MY') : '';
+  });
+}
+['salary','spend'].forEach(id=>formatMoneyInput(document.getElementById(id)));
+
+function rawNum(id){
+  const v = document.getElementById(id).value.replace(/[^\d]/g,'');
+  return v ? parseFloat(v) : null;
+}
+
+function fmt(n){ return 'RM' + Math.round(n).toLocaleString('en-MY'); }
+
+function reveal(){
+  const picked = ITEMS.filter(i=>state[i.id]);
+  const nest = picked.reduce((s,i)=>s+i.val,0);
+  const salary = rawNum('salary');
+  const spendInput = rawNum('spend');
+
+  // Reality-tested independent budgets (2025/26): RM3,060 with car / RM2,160 public transport
+  const usesCar = state.car || state.carown || state.fuel;
+  const baseline = usesCar ? 3060 : 2160;
+  const now = spendInput !== null ? spendInput : Math.max(baseline - nest, 300);
+  const real = now + nest;
+
+  const linesEl = document.getElementById('ps-lines');
+  linesEl.innerHTML = picked.length
+    ? picked.map(i=>`<div class="ps-line"><span class="n">${i.name}</span><span class="v">${fmt(i.val)}</span></div>`).join('')
+    : `<div class="ps-line"><span class="n">No subsidies ticked. You're already flying solo.</span><span class="v">RM0</span></div>`;
+
+  document.getElementById('total-year').textContent = nest>0 ? `That's ${fmt(nest*12)} a year, tax-free.` : '';
+  document.getElementById('c-now').textContent = fmt(now);
+  document.getElementById('c-real').textContent = fmt(real);
+
+  const stamp = document.getElementById('stamp');
+  const verdict = document.getElementById('verdict');
+  if(nest===0){
+    stamp.textContent = 'Independent';
+    verdict.innerHTML = `You're carrying your full cost of living already. Whatever you've built, you built it at full price. Respect.`;
+  } else if(salary){
+    if(salary >= real*1.15){
+      stamp.textContent = 'Ready to fly';
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. On your salary, the jump is survivable with room to breathe. The nest was a boost, not a crutch.`;
+    } else if(salary >= real){
+      stamp.textContent = 'Tight squeeze';
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>. You can technically afford to leave, but there's almost zero buffer. One car repair and the month collapses.`;
+    } else {
+      stamp.textContent = 'Stay in nest';
+      verdict.innerHTML = `Your real cost of living is <b>${fmt(real)}/month</b>, which is <b>${fmt(real-salary)} more</b> than you take home. Moving out today means going backwards financially. Use the nest deliberately: save the gap, grow the income, then jump.`;
+    }
+  } else {
+    stamp.textContent = 'Subsidised';
+    verdict.innerHTML = `Your nest quietly covers <b>${fmt(nest)}/month</b> of your life. Before you sign any lease or car loan, make sure your salary covers <b>${fmt(real)}</b>, not ${fmt(now)}. That's your real number.`;
+  }
+
+  go('s-result');
+
+  const amtEl = document.getElementById('total-amt');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce || nest===0){ amtEl.textContent = fmt(nest); return; }
+  const dur = 1400, t0 = performance.now();
+  function tick(t){
+    const p = Math.min((t-t0)/dur,1);
+    const ease = 1-Math.pow(1-p,3);
+    amtEl.textContent = fmt(nest*ease);
+    if(p<1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function isInAppBrowser(){
+  return /Instagram|FBAN|FBAV|TikTok|Line\//i.test(navigator.userAgent || '');
+}
+
+async function saveImage(){
+  const btn = document.getElementById('save-btn');
+  const card = document.getElementById('share-card');
+  const reset = (label, ms)=>{ btn.textContent = label; btn.disabled = false; setTimeout(()=>{btn.textContent='Save my result as an image'}, ms); };
+  btn.textContent = 'Saving...'; btn.disabled = true;
+
+  let canvas;
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    canvas = await html2canvas(card, {scale:2, backgroundColor:'#0F3B3A', useCORS:true});
+  }catch(err){
+    console.error(err);
+    reset('Couldn\u2019t save. Try a screenshot instead', 3000);
+    return;
+  }
+
+  if(navigator.canShare && navigator.share){
+    try{
+      const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+      const file = new File([blob], 'my-nest-payslip.png', {type:'image/png'});
+      if(navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:'My hidden payslip', text:'calculate yours \u00b7 @thejoelwong'});
+        reset('Shared!', 2500);
+        return;
+      }
+    }catch(err){
+      if(err && err.name === 'AbortError'){
+        btn.textContent = 'Save my result as an image'; btn.disabled = false;
+        return;
+      }
+      console.error(err);
+    }
+  }
+
+  try{
+    const link = document.createElement('a');
+    link.download = 'my-nest-payslip.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    reset('Saved! Check your downloads', 2500);
+  }catch(err){
+    console.error(err);
+    reset(isInAppBrowser() ? 'Open in Safari/Chrome to save' : 'Couldn\u2019t save. Try a screenshot instead', 3000);
+  }
+}
+
+function restart(){
+  ITEMS.forEach(i=>state[i.id]=false);
+  document.querySelectorAll('.tile').forEach(t=>{t.classList.remove('on');t.querySelector('input').checked=false;});
+  document.getElementById('salary').value='';
+  document.getElementById('spend').value='';
+  const bird = document.getElementById('bird-wrap');
+  if(bird) bird.classList.remove('leap');
+  go('s-intro');
+}
+</script>
+</body>
+</html>
