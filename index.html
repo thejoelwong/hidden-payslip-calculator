@@ -28,14 +28,16 @@
     --hi-dim:#B89A1F;
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;scroll-behavior:smooth}
+  html{scroll-behavior:smooth}
   body{
     font-family:'Space Grotesk',system-ui,sans-serif;
     background:linear-gradient(180deg,var(--ink-teal),var(--teal-deep));
+    background-repeat:no-repeat;
     color:var(--paper);
     min-height:100vh;
     display:flex;justify-content:center;
   }
+  @supports (min-height: 100dvh){ body{min-height:100dvh} }
   .app{width:100%;max-width:430px;padding:24px 20px 48px;display:flex;flex-direction:column;min-height:100vh}
   @supports (min-height: 100dvh){ .app{min-height:100dvh} }
   .screen{display:none;flex-direction:column;flex:1}
