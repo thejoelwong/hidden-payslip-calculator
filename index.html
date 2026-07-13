@@ -411,15 +411,16 @@
           <div class="cv" id="c-real">RM &mdash;</div>
         </div>
       </div>
+    </div>
 
-      <!-- Baseline transparency -->
-      <button class="breakdown-toggle" id="bd-toggle" onclick="toggleBreakdown()" aria-expanded="false">
-        <span class="chevron">&#9654;</span> How we got <span id="bd-baseline-label">this number</span>
-      </button>
-      <div class="breakdown-body" id="bd-body"></div>
+    <!-- Baseline transparency -->
+    <button class="breakdown-toggle" id="bd-toggle" onclick="toggleBreakdown()" aria-expanded="false">
+      <span class="chevron">&#9654;</span> <span id="bd-toggle-label">How we estimate independent living costs</span>
+    </button>
+    <div class="breakdown-body" id="bd-body"></div>
 
-      <!-- Affordability snapshot: car / house -->
-      <div class="afford-proj" id="afford-proj" style="display:none">
+    <!-- Affordability snapshot: car / house -->
+    <div class="afford-proj" id="afford-proj" style="display:none">
         <div class="afford-tabs" id="afford-tabs">
           <button type="button" class="afford-tab on" data-target="car">Car</button>
           <button type="button" class="afford-tab" data-target="house">House</button>
@@ -433,7 +434,6 @@
       </div>
 
       <div class="handle">
-        <span>Share this with your friend</span>
         <span class="connect-row">
           <span class="connect-label">Connect with me &rarr;</span>
           <span class="social-links">
@@ -446,9 +446,8 @@
           </span>
         </span>
       </div>
-    </div>
 
-    <button class="primary" onclick="saveImage()" id="save-btn">Save my result as an image</button>
+    <button class="primary" onclick="saveImage()" id="save-btn">Share this with your friend</button>
 
     <p class="src">Estimates: Belanjawanku 2024/25 (EPF &times; UM SWRC) adjusted with 2025/26 market data (rental portals, Perodua financing, RapidKL). A guide, not financial advice. <a href="https://docs.google.com/document/d/10NKhKMp_f60VOLqEPmYb5Jaawq6sXS5XIN-yoXdfL6k/edit?usp=sharing" target="_blank" rel="noopener">See the full research &rarr;</a></p>
 
@@ -662,14 +661,20 @@ ITEMS.forEach(item=>{
 });
 
 // ── Baseline breakdown ───────────────────────────────
-function renderBreakdown(){
+function renderBreakdown(spendInput){
   const baseline = usesCar ? BASELINE_CAR : BASELINE_NO_CAR;
+  const mode = usesCar ? 'with a car' : 'on public transport';
+  document.getElementById('bd-toggle-label').textContent = `How we estimate independent living costs (${mode})`;
+
+  const noteHTML = spendInput !== null
+    ? `<p style="margin-bottom:10px">You told us you actually spend <b style="color:var(--paper)">${fmt(spendInput)}</b>/month, so we used that for your real cost of living above instead of this estimate.</p>`
+    : `<p style="margin-bottom:10px">You didn't enter your own monthly spend, so this reference estimate — for living independently ${mode} in the Klang Valley — became your real cost of living above.</p>`;
+
   const body = document.getElementById('bd-body');
-  body.innerHTML = baseline.items.map(i=>
+  body.innerHTML = noteHTML + baseline.items.map(i=>
     `<div class="bd-line"><span>${i.label}</span><span class="bd-v">RM${i.val}</span></div>`
   ).join('') + `<div class="bd-line" style="border-top:1px solid rgba(250,247,240,.15);margin-top:6px;padding-top:8px;font-weight:600;color:var(--paper)"><span>Total</span><span class="bd-v" style="color:var(--hi)">RM${baseline.total}</span></div>`;
 
-  document.getElementById('bd-baseline-label').textContent = fmt(baseline.total) + '?';
   document.getElementById('bd-toggle').classList.remove('open');
   document.getElementById('bd-body').classList.remove('open');
   document.getElementById('bd-toggle').setAttribute('aria-expanded','false');
@@ -806,7 +811,7 @@ function reveal(){
   }
 
   // Baseline breakdown
-  renderBreakdown();
+  renderBreakdown(spendInput);
 
   // Affordability snapshot (car / house)
   renderAffordability(salary, nest);
@@ -834,7 +839,7 @@ function reveal(){
 async function saveImage(){
   const btn = document.getElementById('save-btn');
   const card = document.getElementById('share-card');
-  const reset = (label, ms)=>{ btn.textContent = label; btn.disabled = false; setTimeout(()=>{btn.textContent='Save my result as an image'}, ms); };
+  const reset = (label, ms)=>{ btn.textContent = label; btn.disabled = false; setTimeout(()=>{btn.textContent='Share this with your friend'}, ms); };
   btn.textContent = 'Saving...'; btn.disabled = true;
 
   let canvas;
@@ -852,13 +857,13 @@ async function saveImage(){
       const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
       const file = new File([blob], 'my-nest-payslip.png', {type:'image/png'});
       if(navigator.canShare({files:[file]})){
-        await navigator.share({files:[file], title:'My hidden payslip', text:`calculate yours · ${SITE_URL} · @thejoelwong`, url:SITE_URL});
+        await navigator.share({files:[file], title:'My hidden payslip', text:`I calculated this on ${SITE_URL} — what do you think yours would be?`, url:SITE_URL});
         reset('Shared!', 2500);
         return;
       }
     }catch(err){
       if(err && err.name === 'AbortError'){
-        btn.textContent = 'Save my result as an image'; btn.disabled = false;
+        btn.textContent = 'Share this with your friend'; btn.disabled = false;
         return;
       }
       console.error(err);
