@@ -8,6 +8,7 @@
 <meta property="og:title" content="Leaving the Nest Calculator">
 <meta property="og:description" content="How much of your life is quietly paid for? Find your real cost of living in the Klang Valley.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://hidden-payslip-calculator.vercel.app/">
 <meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -70,6 +71,13 @@
     background:transparent;color:var(--paper);font-family:'Space Grotesk';font-weight:500;font-size:15px;cursor:pointer;
   }
   .step-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--hi);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+  .step-back{
+    align-self:flex-start;background:none;border:none;color:#9FC2BA;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;
+    cursor:pointer;padding:4px 0;margin-bottom:10px;display:inline-flex;align-items:center;gap:4px;
+  }
+  .step-back:active{opacity:.6}
+  .step-back:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
   h2{font-family:'Archivo Black',sans-serif;font-size:26px;line-height:1.15;text-transform:uppercase;margin-bottom:6px}
   .hint{font-size:14px;color:#B9CFC9;margin-bottom:20px;line-height:1.45}
 
@@ -231,6 +239,8 @@
     font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--hi);
     letter-spacing:.06em;text-align:center;padding-bottom:10px;
   }
+  .connect-row{display:flex;align-items:center;gap:10px}
+  .connect-label{font-size:12px;color:#9FC2BA;letter-spacing:.06em}
   .social-links{display:flex;gap:14px}
   .social-links a{color:var(--hi);display:inline-flex;transition:opacity .15s ease}
   .social-links a:hover,.social-links a:active{opacity:.65}
@@ -348,6 +358,7 @@
 
   <!-- SCREEN 3: CHECKLIST -->
   <section class="screen" id="s-check" aria-label="What's covered for you">
+    <button class="step-back" onclick="go('s-salary')" aria-label="Back to your numbers">&larr; Back</button>
     <div class="step-label">Step 2 / 3</div>
     <div class="progress" aria-hidden="true"><span class="fill" id="prog2" style="width:66%"></span></div>
     <h2>What's covered for you?</h2>
@@ -422,14 +433,17 @@
       </div>
 
       <div class="handle">
-        <span>Tag someone who needs to see this &middot; calculate yours</span>
-        <span class="social-links">
-          <a href="https://www.instagram.com/thejoelwong/" target="_blank" rel="noopener" aria-label="Instagram">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
-          </a>
-          <a href="https://www.linkedin.com/in/joel-wong-wui-ern/" target="_blank" rel="noopener" aria-label="LinkedIn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2.2"/><path d="M9 9h4v2.2c.7-1.4 2.2-2.5 4.3-2.5 3.6 0 5.7 2.4 5.7 6.6V21h-4v-6.7c0-2-.7-3.4-2.5-3.4-1.4 0-2.2.9-2.6 1.8-.1.3-.2.8-.2 1.3V21H9V9z"/></svg>
-          </a>
+        <span>Share this with your friend</span>
+        <span class="connect-row">
+          <span class="connect-label">Connect with me &rarr;</span>
+          <span class="social-links">
+            <a href="https://www.instagram.com/thejoelwong/" target="_blank" rel="noopener" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+            </a>
+            <a href="https://www.linkedin.com/in/joel-wong-wui-ern/" target="_blank" rel="noopener" aria-label="LinkedIn">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2.2"/><path d="M9 9h4v2.2c.7-1.4 2.2-2.5 4.3-2.5 3.6 0 5.7 2.4 5.7 6.6V21h-4v-6.7c0-2-.7-3.4-2.5-3.4-1.4 0-2.2.9-2.6 1.8-.1.3-.2.8-.2 1.3V21H9V9z"/></svg>
+            </a>
+          </span>
         </span>
       </div>
     </div>
@@ -445,6 +459,7 @@
 
 <script>
 // ── Data ──────────────────────────────────────────────
+const SITE_URL = 'https://hidden-payslip-calculator.vercel.app/';
 const ITEMS = [
   {id:'rent',  name:'Rent / room covered (living at home)', note:'Median room in PJ / Subang / Cheras', val:650},
   {id:'car',   name:'Car loan paid for you',                note:'Axia / Bezza / Myvi class instalment', val:440},
@@ -837,7 +852,7 @@ async function saveImage(){
       const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
       const file = new File([blob], 'my-nest-payslip.png', {type:'image/png'});
       if(navigator.canShare({files:[file]})){
-        await navigator.share({files:[file], title:'My hidden payslip', text:'calculate yours · @thejoelwong'});
+        await navigator.share({files:[file], title:'My hidden payslip', text:`calculate yours · ${SITE_URL} · @thejoelwong`, url:SITE_URL});
         reset('Shared!', 2500);
         return;
       }
